@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CM2026 Palmarès">
+<meta name="theme-color" content="#003189">
+<title>Palmarès — Coupe du Monde 2026</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#000d2e;color:#fff}
+
+/* FIREWORKS CANVAS */
+#fw-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+/* MAIN CONTENT */
+.page{position:relative;z-index:1;min-height:100vh;padding:0 0 40px}
+
+/* HERO */
+.hero{background:linear-gradient(180deg,rgba(0,13,46,0) 0%,rgba(0,13,46,.8) 100%);padding:40px 20px 30px;text-align:center}
+.crown{font-size:64px;animation:float 3s ease-in-out infinite;display:block;margin-bottom:8px}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-12px) rotate(5deg)}}
+.hero-badge{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:8px}
+.hero-champion{font-size:15px;font-weight:600;color:rgba(255,255,255,.8);margin-bottom:16px;letter-spacing:.05em;text-transform:uppercase}
+.flag-big{font-size:80px;display:block;margin:0 auto 10px;filter:drop-shadow(0 0 20px rgba(245,166,35,.5))}
+.country-name{font-size:42px;font-weight:800;color:#f5a623;letter-spacing:4px;text-shadow:0 0 30px rgba(245,166,35,.5)}
+.score-badge{display:inline-flex;align-items:center;gap:14px;background:rgba(0,0,0,.4);border:1px solid rgba(245,166,35,.3);border-radius:99px;padding:10px 24px;margin-top:16px}
+.score-flag{font-size:24px}
+.score-num{font-size:24px;font-weight:800;color:#f5a623}
+.score-dash{font-size:18px;color:rgba(255,255,255,.4)}
+.hero-sub{font-size:12px;color:rgba(255,255,255,.5);margin-top:10px}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:12px;padding:20px 20px 8px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+.divider-txt{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);white-space:nowrap}
+
+/* RANKING */
+.ranking{padding:0 14px}
+.rank-card{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;margin-bottom:8px;position:relative;overflow:hidden;transition:transform .2s}
+.rank-card:active{transform:scale(.98)}
+.rank-card.first{background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.35);box-shadow:0 0 20px rgba(245,166,35,.1)}
+.rank-card.second{background:rgba(181,212,244,.05);border-color:rgba(181,212,244,.2)}
+.rank-glow{position:absolute;top:0;right:0;width:80px;height:100%;background:linear-gradient(90deg,transparent,rgba(245,166,35,.05));pointer-events:none}
+.rank-medal{font-size:24px;flex-shrink:0;width:32px;text-align:center}
+.rank-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.rank-info{flex:1;min-width:0}
+.rank-name{font-size:16px;font-weight:700;color:#fff;margin-bottom:6px}
+.rank-bar-wrap{height:5px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.rank-bar{height:100%;border-radius:99px;transition:width 1.5s cubic-bezier(.4,0,.2,1)}
+.rank-pts-wrap{text-align:right;flex-shrink:0}
+.rank-pts{font-size:30px;font-weight:800;line-height:1}
+.rank-pts-lbl{font-size:10px;color:rgba(255,255,255,.4);margin-top:2px}
+
+/* FOOTER */
+.footer{text-align:center;padding:24px 20px 40px}
+.footer-emoji{font-size:32px;margin-bottom:10px;display:block}
+.footer-title{font-size:16px;font-weight:700;color:#f5a623;margin-bottom:6px}
+.footer-text{font-size:12px;color:rgba(255,255,255,.5);line-height:1.7}
+.footer-wc{font-size:13px;font-weight:600;color:rgba(255,255,255,.7);margin-top:10px}
+
+/* TAP TO LAUNCH */
+.tap-hint{text-align:center;padding:8px;font-size:11px;color:rgba(255,255,255,.3);animation:blink 2s ease infinite}
+@keyframes blink{0%,100%{opacity:.3}50%{opacity:.8}}
+</style>
+</head>
+<body>
+
+<canvas id="fw-canvas"></canvas>
+
+<div class="page" onclick="launchFirework()">
+
+  <div class="hero">
+    <span class="crown">👑</span>
+    <div class="hero-badge">Coupe du Monde FIFA 2026</div>
+    <div class="hero-champion">🏆 Championne du Monde</div>
+    <span class="flag-big">🇪🇸</span>
+    <div class="country-name">ESPAGNE</div>
+    <div class="score-badge">
+      <span class="score-flag">🇪🇸</span>
+      <span class="score-num">2</span>
+      <span class="score-dash">–</span>
+      <span class="score-num">1</span>
+      <span class="score-flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+    </div>
+    <div class="hero-sub">Finale · 19 juillet 2026 · MetLife Stadium, New York</div>
+  </div>
+
+  <div class="tap-hint">✨ Tapez l'écran pour lancer des feux d'artifice ✨</div>
+
+  <div class="divider"><span class="divider-txt">🏅 Classement des pronostiqueurs</span></div>
+
+  <div class="ranking" id="ranking"></div>
+
+  <div class="footer">
+    <span class="footer-emoji">🎉</span>
+    <div class="footer-title">Félicitations à tous !</div>
+    <div class="footer-text">
+      Merci à toute l'équipe<br>
+      <strong style="color:rgba(255,255,255,.8)">MP/ACQ/PROD — Balanciers Nivarox</strong><br>
+      pour cette belle compétition de pronostics !
+    </div>
+    <div class="footer-wc">🌍 Rendez-vous au Mondial 2030 ! 🌍</div>
+  </div>
+
+</div>
+
+<script>
+// ── RANKING DATA ──────────────────────────────────────────────
+const RANKING=[
+  {medal:"🥇",name:"Jean-Yves",    short:"JY",color:"#4a3aa7",pts:34,max:34},
+  {medal:"🥈",name:"Modeste",      short:"MO",color:"#eda100",pts:32,max:34},
+  {medal:"🥈",name:"Jean-François",short:"JF",color:"#e34948",pts:32,max:34},
+  {medal:"🥈",name:"Sébastien",    short:"SB",color:"#eb6834",pts:32,max:34},
+  {medal:"5e", name:"Denis",       short:"DE",color:"#008300",pts:28,max:34},
+  {medal:"6e", name:"Julien",      short:"JU",color:"#2a78d6",pts:22,max:34},
+];
+
+// ── RENDER RANKING ────────────────────────────────────────────
+function renderRanking(){
+  const el=document.getElementById("ranking");
+  el.innerHTML=RANKING.map((p,i)=>`
+    <div class="rank-card ${i===0?"first":i<4?"second":""}">
+      ${i===0?'<div class="rank-glow"></div>':''}
+      <div class="rank-medal">${p.medal}</div>
+      <div class="rank-avatar" style="background:${p.color}">${p.short}</div>
+      <div class="rank-info">
+        <div class="rank-name">${p.name}</div>
+        <div class="rank-bar-wrap">
+          <div class="rank-bar" id="bar-${i}" style="width:0%;background:${p.color}"></div>
+        </div>
+      </div>
+      <div class="rank-pts-wrap">
+        <div class="rank-pts" style="color:${i===0?"#f5a623":i<4?"#B5D4F4":"rgba(255,255,255,.6)"}">${p.pts}</div>
+        <div class="rank-pts-lbl">pts</div>
+      </div>
+    </div>
+  `).join("");
+
+  // Animate bars after render
+  setTimeout(()=>{
+    RANKING.forEach((p,i)=>{
+      const bar=document.getElementById("bar-"+i);
+      if(bar) bar.style.width=Math.round(p.pts/p.max*100)+"%";
+    });
+  },300);
+}
+
+// ── FIREWORKS ENGINE ─────────────────────────────────────────
+const canvas=document.getElementById("fw-canvas");
+const ctx=canvas.getContext("2d");
+let particles=[];
+let autoFwTimer;
+
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+window.addEventListener("resize",resize);resize();
+
+class Particle{
+  constructor(x,y,color){
+    this.x=x;this.y=y;this.color=color;
+    const angle=Math.random()*Math.PI*2;
+    const speed=2+Math.random()*6;
+    this.vx=Math.cos(angle)*speed;
+    this.vy=Math.sin(angle)*speed-2;
+    this.gravity=0.08;
+    this.life=1;
+    this.decay=0.012+Math.random()*0.015;
+    this.size=2+Math.random()*3;
+    this.trail=[];
+  }
+  update(){
+    this.trail.push({x:this.x,y:this.y});
+    if(this.trail.length>6)this.trail.shift();
+    this.vy+=this.gravity;
+    this.x+=this.vx;
+    this.y+=this.vy;
+    this.vx*=0.98;
+    this.life-=this.decay;
+  }
+  draw(){
+    // Trail
+    this.trail.forEach((pt,i)=>{
+      ctx.beginPath();
+      ctx.arc(pt.x,pt.y,this.size*(i/this.trail.length)*.5,0,Math.PI*2);
+      ctx.fillStyle=this.color+(Math.floor(this.life*(i/this.trail.length)*80)).toString(16).padStart(2,'0');
+      ctx.fill();
+    });
+    // Main
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+    ctx.fillStyle=this.color+Math.floor(this.life*255).toString(16).padStart(2,'0');
+    ctx.fill();
+    // Sparkle
+    if(this.life>0.5){
+      ctx.beginPath();
+      ctx.arc(this.x,this.y,this.size*1.8,0,Math.PI*2);
+      ctx.fillStyle=this.color+Math.floor(this.life*60).toString(16).padStart(2,'0');
+      ctx.fill();
+    }
+  }
+}
+
+const COLORS=["#f5a623","#ff4444","#4488ff","#44ff88","#ff44ff","#ffff44","#ff8844","#44ffff","#ffffff","#ff6699","#c8a2ff"];
+
+function burst(x,y){
+  const color=COLORS[Math.floor(Math.random()*COLORS.length)];
+  const count=60+Math.floor(Math.random()*40);
+  for(let i=0;i<count;i++) particles.push(new Particle(x,y,color));
+  // Second color ring
+  const color2=COLORS[Math.floor(Math.random()*COLORS.length)];
+  for(let i=0;i<20;i++) particles.push(new Particle(x,y,color2));
+}
+
+function launchFirework(e){
+  const x=e?(e.clientX||e.touches?.[0]?.clientX||canvas.width/2):Math.random()*canvas.width*0.8+canvas.width*0.1;
+  const y=e?(e.clientY||e.touches?.[0]?.clientY||canvas.height/2):Math.random()*canvas.height*0.5+50;
+  burst(x,y);
+  // Extra bursts nearby
+  setTimeout(()=>burst(x+(Math.random()-.5)*80,y+(Math.random()-.5)*80),150);
+  setTimeout(()=>burst(x+(Math.random()-.5)*120,y+(Math.random()-.5)*60),300);
+}
+
+function autoLaunch(){
+  const x=Math.random()*canvas.width*0.8+canvas.width*0.1;
+  const y=Math.random()*canvas.height*0.45+50;
+  burst(x,y);
+  setTimeout(()=>burst(x+(Math.random()-.5)*100,y+(Math.random()-.5)*80),200);
+  autoFwTimer=setTimeout(autoLaunch,1200+Math.random()*1500);
+}
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles=particles.filter(p=>p.life>0);
+  particles.forEach(p=>{p.update();p.draw();});
+  requestAnimationFrame(animate);
+}
+
+// Touch support
+document.addEventListener("touchstart",(e)=>{
+  e.preventDefault();
+  launchFirework(e);
+},{passive:false});
+
+// Start
+animate();
+renderRanking();
+// Auto fireworks on load
+setTimeout(()=>{
+  burst(canvas.width*0.3,canvas.height*0.25);
+  burst(canvas.width*0.7,canvas.height*0.2);
+  setTimeout(()=>burst(canvas.width*0.5,canvas.height*0.15),400);
+  setTimeout(autoLaunch,2000);
+},800);
+</script>
+</body>
+</html>
